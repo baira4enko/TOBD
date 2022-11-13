@@ -27,6 +27,9 @@ RUN \
   echo "export YARN_NODEMANAGER_USER=root" >> $HADOOP_HOME/etc/hadoop/hadoop-env.sh && \
   echo "PATH=$PATH:$HADOOP_HOME/bin" >> ~/.bashrc
 
+RUN \
+  apt-get install -y openssh-server
+
 # create ssh keys
 RUN \
   ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa && \
@@ -39,16 +42,17 @@ ADD configs/*xml $HADOOP_HOME/etc/hadoop/
 # copy ssh config
 ADD configs/ssh_config /root/.ssh/config
 
-RUN \
-   chown root:$USER ~/.ssh/config && \
-   chmod 644 ~/.ssh/config && \
-   /etc/init.d/ssh start
-
 # copy script to start hadoop
 ADD start-hadoop.sh start-hadoop.sh
 
+RUN \
+   chown root:$USER ~/.ssh/config && \
+   chmod 644 ~/.ssh/config
+
+USER root 
+
 # expose various ports
-EXPOSE 8088 50070 50075 50030 50060 22
+EXPOSE 8088 50070 50075 50030 50060 22 9870 9864 
 
 # start hadoop
 CMD bash start-hadoop.sh
